@@ -11,7 +11,7 @@ First of all create new Debian server in your provider of choice, but if you pre
 
 Assuming that you have a new brand server you should have now a shell as the `root` user, thus let's get it up to date with:
 
-```
+```sh
 apt update && apt -y upgrade
 ```
 
@@ -21,32 +21,32 @@ We will not run the demo as `root`, because it's a best security practice to not
 
 Check if the server already have an unprivileged user:
 
-```
+```sh
 grep -irn :1000: /etc/passwd
 ```
 
 Output example for a server that already has one:
 
-```
+```sh
 28:debian:x:1000:1000:Cloud-init-user,,,:/home/debian:/bin/bash
 ```
 
 If you don't get any output, then it means it doesn't exist yet, thus you can add a new unprivileged user with:
 
-```
+```sh
 adduser debian
 ```
 > **NOTE**: Type you password and reply to all other questions with just hitting `enter`.
 
 Add the user to `sudo` with:
 
-```
+```sh
 usermod -aG sudo debian
 ```
 
 Switch to the `debian` user with:
 
-```
+```sh
 su - debian
 ```
 
@@ -56,13 +56,13 @@ In the next step to setup the Domain DNS will need the public IP address for the
 
 First we need to install the `dnsutils` utils package:
 
-```txt
+```sh
 sudo apt install -y dnsutils
 ```
 
 Now you can get the public IP address for the server with:
 
-```txt
+```sh
 dig +short myip.opendns.com @resolver1.opendns.com
 ```
 
@@ -78,11 +78,9 @@ Go ahead and configure a domain at the DNS provider of your choice that points t
 
 > **NOTE:** It's important that you add also a wild-card entry in the DNS record to point any sub-domain to the same IP.
 
-
 ## FIREWALL SETUP
 
 Ensure that port `80` and `443` are open.
-
 
 ## DEBIAN SERVER SETUP
 
@@ -90,7 +88,7 @@ Ensure that port `80` and `443` are open.
 
 We will need `git` to clone this repository in order to install and setup Traefik:
 
-```
+```sh
 sudo apt install -y git
 ```
 
@@ -98,14 +96,13 @@ sudo apt install -y git
 
 If the server already has one provisioned, then just `cat ~/.ssh/id_rsa.pub` and add it to your Gitlab/Github account, otherwise create it first. This step is only necessary when you need to clone repositories via SSH.
 
-
 ### Instance Setup
 
 #### Cloning this repository
 
 Let's start by cloning this repository:
 
-```
+```sh
 git clone https://github.com/approov/debian-traefik-setup.git && cd debian-traefik-setup
 ```
 
@@ -113,13 +110,13 @@ git clone https://github.com/approov/debian-traefik-setup.git && cd debian-traef
 
 Creating the `.env` file for Traefik:
 
-```
+```sh
 sudo mkdir /opt/traefik && sudo cp ./traefik/.env.example /opt/traefik/.env
 ```
 
 Customize the `env.` file with your values:
 
-```
+```sh
 sudo nano /opt/traefik/.env
 ```
 
@@ -127,13 +124,13 @@ sudo nano /opt/traefik/.env
 
 Traefik, Docker and Docker Compose will be installed and configured by running the bash script in the root of this repo:
 
-```
+```sh
 ./traefik-setup
 ```
 
 The end of the output will look like this:
 
-```
+```sh
 ---> DOCKER COMPOSE VERSION <---
 docker-compose version 1.25.5, build 8a1c60f6
 
@@ -149,27 +146,25 @@ From /opt/traefik folder you can ran any docker-compose command.
 Some useful examples:
 
 ## Restart Traefik:
-sudo docker-compose restart traefik
+sudo docker compose restart traefik
 
 ## Start Traefik:
-sudo docker-compose up -d traefik
+sudo docker compose up -d traefik
 
 ## Destroy Traefik:
-sudo docker-compose down
+sudo docker compose down
 
 ## Tailing the Traefik logs in realtime:
-sudo docker-compose logs --follow traefik
+sudo docker compose logs --follow traefik
 
 ---> TRAEFIK is now listening for new docker containers <---
 ```
 
 This setup script will let Traefik running and listening for incoming requests on port `80` and `443`, where requests for port `80` will be redirected to port `443`.
 
-
 ## TLS CERTIFICATES
 
 Traefik uses LetsEncrypt to automatically generated and renew TLS certificates for all domains is listening on, and the will keep the public key unchanged, thus a mobile app can implement certificate pinning against the public key without the concern of having the pin changed at each renewal of the certificate.
-
 
 ## DEPLOY SERVER EXAMPLE
 
@@ -177,19 +172,19 @@ Let's see an example of deploying the Python Shapes API backend into an Debian s
 
 #### Create the folder
 
-```
+```sh
 mkdir -p ~/backend && cd ~/backend
 ```
 
 #### Clone the repo
 
-```
+```sh
 git clone https://github.com/approov/quickstart-python-flask_shapes-api && cd quickstart-python-flask_shapes-api
 ```
 
 #### Create the .env file
 
-```
+```sh
 cp .env.example .env
 ```
 
@@ -197,35 +192,35 @@ cp .env.example .env
 
 Replace the default domain with your own server domain:
 
-```bash
+```sh
 PYTHON_FLASK_SHAPES_DOMAIN=python-shapes.demo.example.com
 ```
 
 Replace the dummy Approov secret on it with the one for your Approov account:
 
-```bash
+```sh
 # approov secret -get base64
 APPROOV_BASE64_SECRET=your-secret-here
 ```
 
 #### Build the Docker Stack
 
-```
-sudo docker-compose build
+```sh
+sudo docker compose build
 ```
 
 #### Start the Docker Stack
 
-```
-sudo docker-compose up -d
+```sh
+sudo docker compose up -d
 ```
 
 Now in your browser visit `python-shapes.demo.example.com` to check that the server is accepting requests.
 
 #### Tail the logs
 
-```
-sudo docker-compose logs -f
+```sh
+sudo docker compose logs -f
 ```
 
 ## ADD A CONTAINER TO TRAEFIK
